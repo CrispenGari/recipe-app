@@ -1,0 +1,12 @@
+{
+  "tasks": {
+    "start": "deno run --watch --allow-net --allow-read --allow-env src/index.ts",
+    "push": "deno run -A npm:prisma@^4.5 db push",
+    "generate": "deno run -A --unstable npm:prisma@^4.5 generate --data-proxy"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true
+  }
+}
