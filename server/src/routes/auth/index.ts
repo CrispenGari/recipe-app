@@ -10,6 +10,7 @@ authRouter.get("/me", async (ctx) => {
   try {
     const jwt = await ctx.cookies.get(__cookieName__);
     if (!jwt) {
+      ctx.response.status = 200;
       return (ctx.response.body = { me: null });
     }
     const payload = await verifyJwt(jwt);
@@ -23,10 +24,12 @@ authRouter.get("/me", async (ctx) => {
       created_at: Date;
       updated_at: Date;
     } | null = res.rows ? res.rows[0] : null;
+    ctx.response.status = 200;
     return (ctx.response.body = {
       me,
     });
   } catch (error) {
+    ctx.response.status = 500;
     return (ctx.response.body = {
       message: error.message,
       code: 500,
@@ -52,6 +55,7 @@ authRouter.post("/login", async (ctx) => {
         : null;
 
       if (!exists) {
+        ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
           error: {
@@ -62,6 +66,7 @@ authRouter.post("/login", async (ctx) => {
       }
       const correct = await bcrypt.compare(password, exists.password);
       if (!correct) {
+        ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
           error: {
@@ -90,17 +95,20 @@ authRouter.post("/login", async (ctx) => {
         httpOnly: true,
         secure: false,
       });
+      ctx.response.status = 200;
       return (ctx.response.body = {
         error: null,
         user: me,
       });
     } catch (error) {
+      ctx.response.status = 500;
       return (ctx.response.body = {
         message: error.message,
         code: 500,
       });
     }
   } else {
+    ctx.response.status = 500;
     return (ctx.response.body = {
       message: "the request body must be in json format.",
       code: 500,
@@ -118,6 +126,7 @@ authRouter.post("/register", async (ctx) => {
       };
 
       if (!email.includes("@")) {
+        ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
           error: {
@@ -128,6 +137,7 @@ authRouter.post("/register", async (ctx) => {
       }
 
       if (password.trim().length < 5) {
+        ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
           error: {
@@ -143,6 +153,7 @@ authRouter.post("/register", async (ctx) => {
         email.trim().toLocaleLowerCase(),
       ]);
       if (exits.rows?.length) {
+        ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
           error: {
@@ -177,17 +188,20 @@ authRouter.post("/register", async (ctx) => {
         httpOnly: true,
         secure: false,
       });
+      ctx.response.status = 200;
       return (ctx.response.body = {
         error: null,
         user: me,
       });
     } catch (error) {
+      ctx.response.status = 500;
       return (ctx.response.body = {
         message: error.message,
         code: 500,
       });
     }
   } else {
+    ctx.response.status = 500;
     return (ctx.response.body = {
       message: "the request body must be in json format.",
       code: 500,
