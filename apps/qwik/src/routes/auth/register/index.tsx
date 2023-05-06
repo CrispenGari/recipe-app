@@ -14,7 +14,6 @@ export const onGet: RequestHandler = async (response) => {
       Authorization: `Bearer ${token?.value ? token.value : ""}`,
     },
     credentials: "include",
-    method: "POST",
   });
 
   const { me }: { me: MeType | null } = await res.json();
@@ -25,12 +24,13 @@ export const onGet: RequestHandler = async (response) => {
 };
 
 export const useRegister = routeAction$(async (data, response) => {
-  const res = await fetch("http://127.0.0.1:3001/auth/login", {
+  const res = await fetch("http://127.0.0.1:3001/auth/register", {
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
     body: JSON.stringify(data),
+    method: "POST",
   });
   const _data: {
     user: MeType | null;
@@ -46,6 +46,7 @@ export const useRegister = routeAction$(async (data, response) => {
     error: _data.error,
   };
 });
+
 export default component$(() => {
   useStylesScoped$(styles);
   const action = useRegister();

@@ -7,6 +7,7 @@ export const isAuthenticated: Middleware = async (ctx, next) => {
   try {
     const auth = await ctx.request.headers.get("authorization");
     const jwt = auth ? auth.split(/\s/)[1] : "";
+
     if (!jwt) {
       return (ctx.response.body = {
         code: 401,

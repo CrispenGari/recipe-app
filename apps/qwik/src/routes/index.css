@@ -1,0 +1,26 @@
+.home {
+  width: 100vw;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  background-color: var(--main);
+}
+.home::-webkit-scrollbar {
+  display: none;
+}
+
+.home__recipes {
+  width: 100%;
+  padding: 10px;
+  max-width: 1200px;
+  margin: 0px auto;
+  display: flex;
+  user-select: none;
+  flex-direction: column;
+}
+.home__recipes__list {
+  width: 100%;
+
+  display: flex;
+  flex-wrap: wrap;
+}

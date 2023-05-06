@@ -6,7 +6,7 @@ export default component$(() => {
   const nav = useNavigate();
   return (
     <div class="header">
-      <img alt="logo" src="/icon.png" />
+      <img alt="logo" src="/icon.png" onClick$={() => nav("/", true)} />
       <button
         onClick$={() => {
           nav("/auth/logout");

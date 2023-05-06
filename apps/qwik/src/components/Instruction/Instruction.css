@@ -1,0 +1,8 @@
+.instruction {
+  width: 100%;
+  max-width: 500px;
+  background-color: var(--tertiary);
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 2px;
+}

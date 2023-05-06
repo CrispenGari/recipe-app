@@ -1,0 +1,15 @@
+.banner {
+  background-color: var(--tertiary);
+  width: 100%;
+  height: 45vh;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  background-image: url(/cover.jpg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-blend-mode: lighten;
+}
