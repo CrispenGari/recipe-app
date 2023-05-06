@@ -2,13 +2,13 @@ import { Router } from "https://deno.land/x/oak@v12.4.0/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.3.0/mod.ts";
 import { client } from "../../mysql/index.ts";
 import { signJwt, verifyJwt } from "../../utils/index.ts";
-import { __cookieName__ } from "../../constants/index.ts";
 const authRouter = new Router();
 
 authRouter.get("/me", async (ctx) => {
   await ctx.response.headers.set("Content-Type", "application/json");
   try {
-    const jwt = await ctx.cookies.get(__cookieName__);
+    const auth = await ctx.request.headers.get("authorization");
+    const jwt = auth ? auth.split(/\s/)[1] : "";
     if (!jwt) {
       ctx.response.status = 200;
       return (ctx.response.body = { me: null });
@@ -58,6 +58,8 @@ authRouter.post("/login", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+
+          jwt: null,
           error: {
             message: "invalid email address.",
             field: "email",
@@ -69,6 +71,8 @@ authRouter.post("/login", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+          jwt: null,
+
           error: {
             message: "invalid account password.",
             field: "password",
@@ -90,17 +94,15 @@ authRouter.post("/login", async (ctx) => {
         throw new Error("There's no me!");
       }
       const jwt = await signJwt(me);
-      await ctx.cookies.set(__cookieName__, jwt, {
-        sameSite: "lax",
-        httpOnly: true,
-        secure: false,
-      });
+
       ctx.response.status = 200;
       return (ctx.response.body = {
         error: null,
         user: me,
+        jwt,
       });
     } catch (error) {
+      console.log({ error });
       ctx.response.status = 500;
       return (ctx.response.body = {
         message: error.message,
@@ -129,6 +131,7 @@ authRouter.post("/register", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+          jwt: null,
           error: {
             message: "invalid email address",
             field: "email",
@@ -140,6 +143,7 @@ authRouter.post("/register", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+          jwt: null,
           error: {
             message: "password must be at least 5 characters long",
             field: "password",
@@ -156,6 +160,7 @@ authRouter.post("/register", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+          jwt: null,
           error: {
             message: "the email address is already taken.",
             field: "email",
@@ -183,15 +188,12 @@ authRouter.post("/register", async (ctx) => {
       }
 
       const jwt = await signJwt(me);
-      await ctx.cookies.set(__cookieName__, jwt, {
-        sameSite: "lax",
-        httpOnly: true,
-        secure: false,
-      });
+
       ctx.response.status = 200;
       return (ctx.response.body = {
         error: null,
         user: me,
+        jwt,
       });
     } catch (error) {
       ctx.response.status = 500;
@@ -210,7 +212,6 @@ authRouter.post("/register", async (ctx) => {
 });
 authRouter.post("/logout", async (ctx) => {
   await ctx.response.headers.set("Content-Type", "application/json");
-  await ctx.cookies.delete(__cookieName__);
   return (ctx.response.body = {
     me: null,
   });

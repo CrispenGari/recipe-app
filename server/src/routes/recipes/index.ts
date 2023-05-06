@@ -1,5 +1,4 @@
 import { Router } from "https://deno.land/x/oak@v12.4.0/mod.ts";
-import { __cookieName__ } from "../../constants/index.ts";
 import { isAuthenticated } from "../../middlewares/index.ts";
 import { getQuery } from "https://deno.land/x/oak@v12.4.0/helpers.ts";
 

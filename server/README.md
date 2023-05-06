@@ -4,7 +4,7 @@ In this server package we are going to create an API using `deno` that will do t
 
 1. authentication
 
-The authentication that we are going to be using here is `cookies` and `jwt`. So the authentication routes will allow users to:
+The authentication that we are going to be using here is `jwt`. So the authentication routes will allow users to:
 
 - login `/auth/login` - `POST`
 - register `/auth/register` - `POST`
@@ -137,13 +137,13 @@ import { Router } from "https://deno.land/x/oak@v12.4.0/mod.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.3.0/mod.ts";
 import { client } from "../../mysql/index.ts";
 import { signJwt, verifyJwt } from "../../utils/index.ts";
-import { __cookieName__ } from "../../constants/index.ts";
 const authRouter = new Router();
 
 authRouter.get("/me", async (ctx) => {
   await ctx.response.headers.set("Content-Type", "application/json");
   try {
-    const jwt = await ctx.cookies.get(__cookieName__);
+    const auth = await ctx.request.headers.get("authorization");
+    const jwt = auth ? auth.split(/\s/)[1] : "";
     if (!jwt) {
       ctx.response.status = 200;
       return (ctx.response.body = { me: null });
@@ -193,6 +193,8 @@ authRouter.post("/login", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+
+          jwt: null,
           error: {
             message: "invalid email address.",
             field: "email",
@@ -204,6 +206,8 @@ authRouter.post("/login", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+          jwt: null,
+
           error: {
             message: "invalid account password.",
             field: "password",
@@ -225,17 +229,15 @@ authRouter.post("/login", async (ctx) => {
         throw new Error("There's no me!");
       }
       const jwt = await signJwt(me);
-      await ctx.cookies.set(__cookieName__, jwt, {
-        sameSite: "lax",
-        httpOnly: true,
-        secure: false,
-      });
+
       ctx.response.status = 200;
       return (ctx.response.body = {
         error: null,
         user: me,
+        jwt,
       });
     } catch (error) {
+      console.log({ error });
       ctx.response.status = 500;
       return (ctx.response.body = {
         message: error.message,
@@ -264,6 +266,7 @@ authRouter.post("/register", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+          jwt: null,
           error: {
             message: "invalid email address",
             field: "email",
@@ -275,6 +278,7 @@ authRouter.post("/register", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+          jwt: null,
           error: {
             message: "password must be at least 5 characters long",
             field: "password",
@@ -291,6 +295,7 @@ authRouter.post("/register", async (ctx) => {
         ctx.response.status = 200;
         return (ctx.response.body = {
           user: null,
+          jwt: null,
           error: {
             message: "the email address is already taken.",
             field: "email",
@@ -318,15 +323,12 @@ authRouter.post("/register", async (ctx) => {
       }
 
       const jwt = await signJwt(me);
-      await ctx.cookies.set(__cookieName__, jwt, {
-        sameSite: "lax",
-        httpOnly: true,
-        secure: false,
-      });
+
       ctx.response.status = 200;
       return (ctx.response.body = {
         error: null,
         user: me,
+        jwt,
       });
     } catch (error) {
       ctx.response.status = 500;
@@ -345,7 +347,6 @@ authRouter.post("/register", async (ctx) => {
 });
 authRouter.post("/logout", async (ctx) => {
   await ctx.response.headers.set("Content-Type", "application/json");
-  await ctx.cookies.delete(__cookieName__);
   return (ctx.response.body = {
     me: null,
   });
@@ -361,7 +362,6 @@ Next let's work on the `recipes` router which will be located in the `/src/recip
 
 ```ts
 import { Router } from "https://deno.land/x/oak@v12.4.0/mod.ts";
-import { __cookieName__ } from "../../constants/index.ts";
 import { isAuthenticated } from "../../middlewares/index.ts";
 import { getQuery } from "https://deno.land/x/oak@v12.4.0/helpers.ts";
 
@@ -399,12 +399,12 @@ So we are protecting our `recipes` to unauthenticated users using the `isAuthent
 import { Middleware } from "https://deno.land/x/oak@v12.4.0/mod.ts";
 import { verifyJwt } from "../utils/index.ts";
 import { client } from "../mysql/index.ts";
-import { __cookieName__ } from "../constants/index.ts";
 
 export const isAuthenticated: Middleware = async (ctx, next) => {
   await ctx.response.headers.set("Content-Type", "application/json");
   try {
-    const jwt = await ctx.cookies.get(__cookieName__);
+    const auth = await ctx.request.headers.get("authorization");
+    const jwt = auth ? auth.split(/\s/)[1] : "";
     if (!jwt) {
       return (ctx.response.body = {
         code: 401,

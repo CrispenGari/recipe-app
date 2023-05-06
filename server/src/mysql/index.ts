@@ -5,4 +5,5 @@ export const client = await new Client().connect({
   username: "root",
   db: "recieps",
   password: "root",
+  poolSize: 10,
 });

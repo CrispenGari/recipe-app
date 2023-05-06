@@ -1,0 +1,65 @@
+.register {
+  width: 100vw;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--main);
+  padding: 10px;
+  flex-direction: column;
+  display: flex;
+}
+.register > form {
+  width: 100%;
+  padding: 10px;
+  display: flex;
+  max-width: 500px;
+  flex-direction: column;
+  background-color: var(--primary);
+  user-select: none;
+}
+.register > form > button {
+  margin: 10px 0;
+  padding: 7px 10px;
+  background-color: var(--tertiary);
+  color: white;
+  max-width: 200px;
+  border-radius: 5px;
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+.error {
+  color: var(--red);
+}
+.register > form > img {
+  width: 80px;
+  margin-bottom: 10px;
+  align-self: center;
+}
+.register > form > h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.register > form > input {
+  padding: 10px;
+  outline: none;
+  border: none;
+  margin-bottom: 10px;
+}
+.register > form > button:hover {
+  background-color: var(--secondary);
+}
+.register > form > p {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px !important;
+}
+
+.register > form > p > span {
+  margin-left: 10px;
+  border-bottom: 1px solid var(--main);
+  flex: 1;
+}

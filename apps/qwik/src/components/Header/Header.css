@@ -1,0 +1,26 @@
+.header {
+  background-color: var(--tertiary);
+  position: sticky;
+  display: flex;
+  padding: 20px 30px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.header > img {
+  cursor: pointer;
+  width: 30px;
+  object-fit: contain;
+}
+.header > button {
+  padding: 7px 10px;
+  background-color: var(--primary);
+  color: white;
+  max-width: 200px;
+  border-radius: 5px;
+  outline: none;
+  border: none;
+  cursor: pointer;
+}
+.header > button:hover {
+  background-color: var(--main);
+}

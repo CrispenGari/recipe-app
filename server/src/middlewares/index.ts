@@ -1,12 +1,12 @@
 import { Middleware } from "https://deno.land/x/oak@v12.4.0/mod.ts";
 import { verifyJwt } from "../utils/index.ts";
 import { client } from "../mysql/index.ts";
-import { __cookieName__ } from "../constants/index.ts";
 
 export const isAuthenticated: Middleware = async (ctx, next) => {
   await ctx.response.headers.set("Content-Type", "application/json");
   try {
-    const jwt = await ctx.cookies.get(__cookieName__);
+    const auth = await ctx.request.headers.get("authorization");
+    const jwt = auth ? auth.split(/\s/)[1] : "";
     if (!jwt) {
       return (ctx.response.body = {
         code: 401,
