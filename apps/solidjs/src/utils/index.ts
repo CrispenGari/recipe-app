@@ -1,12 +1,12 @@
-// import { Buffer } from "buffer";
+import { Buffer } from "buffer";
 
-// export const encodeId = (data: string): string => {
-//   return Buffer.from(data, "utf-8").toString("base64");
-// };
+export const encodeId = (data: string): string => {
+  return Buffer.from(data, "utf-8").toString("base64");
+};
 
-// export const decodeId = (data: string): string => {
-//   return Buffer.from(data, "base64").toString("utf-8");
-// };
+export const decodeId = (data: string): string => {
+  return Buffer.from(data, "base64").toString("utf-8");
+};
 
 export const store = async (key: string, value: string): Promise<boolean> => {
   try {

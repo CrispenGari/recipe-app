@@ -1,10 +1,16 @@
-import { component$, useStylesScoped$ } from "@builder.io/qwik";
-import styles from "./Instruction.css?inline";
-export default component$(({ instruction }: { instruction: string }) => {
-  useStylesScoped$(styles);
+import { Component } from "solid-js";
+import styles from "./Instruction.module.css";
+
+interface Props {
+  instruction: string;
+}
+
+const Instruction: Component<Props> = ({ instruction }) => {
   return (
-    <div class="instruction">
+    <div class={styles.instruction}>
       <p>{instruction}</p>
     </div>
   );
-});
+};
+
+export default Instruction;

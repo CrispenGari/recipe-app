@@ -1,4 +1,10 @@
-import { Title, parseCookie, useServerContext } from "solid-start";
+import {
+  Title,
+  createCookieSessionStorage,
+  parseCookie,
+  useNavigate,
+  useServerContext,
+} from "solid-start";
 import styles from "./login.module.css";
 import { A, useRouteData } from "@solidjs/router";
 import {
@@ -6,12 +12,9 @@ import {
   createServerData$,
   redirect,
 } from "solid-start/server";
-import { REDIRECT_CODES, TOKEN_KEY, storage } from "~/constants";
+import { TOKEN_KEY } from "~/constants";
 import { ErrorType, MeType } from "~/types";
-import { isServer } from "solid-js/web";
-import { Component, createEffect, createResource } from "solid-js";
-import { retrieve, store } from "~/utils";
-
+import { Component, createEffect } from "solid-js";
 export const routeData = () => {
   return createServerData$(async (_, event) => {
     const cookies = parseCookie(event.request.headers.get("Cookie") ?? "");
@@ -23,40 +26,31 @@ export const routeData = () => {
       credentials: "include",
     });
     const { me }: { me: MeType | null } = await res.json();
-
-    console.log({ me });
-    return { token };
+    return {
+      me,
+    };
   });
-};
-
-const fetchMe = async () => {
-  const token = await retrieve(TOKEN_KEY);
-  const res = await fetch("http://127.0.0.1:3001/auth/me", {
-    headers: {
-      Authorization: `Bearer ${""}`,
-    },
-    credentials: "include",
-  });
-
-  console.log({ token });
-  const { me }: { me: MeType | null } = await res.json();
-  return { me: true, token };
 };
 
 const Login: Component<{}> = () => {
-  const [me, {}] = createResource(fetchMe);
-
+  const { latest } = useRouteData<typeof routeData>();
+  const nav = useNavigate();
   createEffect(async () => {
-    const token = await retrieve(TOKEN_KEY);
-    const res = await fetch("http://127.0.0.1:3001/auth/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      credentials: "include",
-    });
+    if (!!latest?.me) {
+      nav("/", { replace: true });
+    }
+  });
 
-    const { me }: { me: MeType | null } = await res.json();
-    console.log({ token, me });
+  const storage = createCookieSessionStorage({
+    cookie: {
+      name: "session",
+      secure: false,
+      secrets: ["je"],
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      httpOnly: true,
+    },
   });
 
   const [submitting, { Form }] = createServerAction$(
@@ -83,11 +77,8 @@ const Login: Component<{}> = () => {
         jwt: string | null;
       } = await res.json();
 
-      console.log({ data });
       if (data.user && data.jwt) {
-        const success = await store(TOKEN_KEY, data.jwt);
-        console.log({ success });
-        if (success) throw redirect("/");
+        throw redirect("/");
       }
       return { data };
     }

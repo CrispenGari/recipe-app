@@ -1,15 +1,15 @@
-.home {
+.recipe {
   width: 100vw;
   height: 100vh;
   overflow-x: hidden;
   overflow-y: scroll;
   background-color: var(--main);
 }
-.home::-webkit-scrollbar {
+.recipe::-webkit-scrollbar {
   display: none;
 }
 
-.home__recipes {
+.recipe__recipe {
   width: 100%;
   padding: 10px;
   max-width: 1200px;
@@ -18,8 +18,19 @@
   user-select: none;
   flex-direction: column;
 }
-.home__recipes__list {
+.recipe__recipe > img {
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
+  max-width: 300px;
+  height: 150px;
+  object-fit: cover;
+}
+
+.recipe__recipe > h1 {
+  margin-bottom: 5px;
+}
+
+.recipe__recipe > h2 {
+  margin-top: 10px;
+  margin-bottom: 2px;
+  font-size: 1rem;
 }

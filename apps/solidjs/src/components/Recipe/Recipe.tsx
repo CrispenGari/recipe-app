@@ -2,6 +2,7 @@ import { Component } from "solid-js";
 import styles from "./Recipe.module.css";
 import { RecipesType } from "~/types";
 import { A } from "solid-start";
+import { encodeId } from "~/utils";
 interface Props {
   recipe: RecipesType;
 }
@@ -10,7 +11,7 @@ const Recipe: Component<Props> = ({ recipe }) => {
     <div class={styles.recipe}>
       <h1>{recipe.name}</h1>
       <img src={recipe.imageURL || "/cover.jpg"} alt={recipe.name} />
-      <A href={`/recipe/${recipe.name}`}>OPEN</A>
+      <A href={`/recipe/${encodeId(recipe.name)}`}>OPEN</A>
     </div>
   );
 };

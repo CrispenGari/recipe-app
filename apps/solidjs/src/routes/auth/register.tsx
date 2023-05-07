@@ -1,14 +1,16 @@
 import { RouteDataArgs, Title, parseCookie, redirect } from "solid-start";
 import styles from "./register.module.css";
-import { A } from "@solidjs/router";
+import { A, useNavigate, useRouteData } from "@solidjs/router";
 import { createServerData$ } from "solid-start/server";
 import { TOKEN_KEY, REDIRECT_CODES } from "~/constants";
 import { MeType } from "~/types";
+import { createEffect } from "solid-js";
 
 export const routeData = () => {
   return createServerData$(async (_, event) => {
     const cookies = parseCookie(event.request.headers.get("Cookie") ?? "");
     const token = cookies[TOKEN_KEY] ?? "";
+
     const res = await event.fetch("http://127.0.0.1:3001/auth/me", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -16,9 +18,6 @@ export const routeData = () => {
       credentials: "include",
     });
     const { me }: { me: MeType | null } = await res.json();
-    if (!!me) {
-      return redirect("/", REDIRECT_CODES.TEMPORARY_REDIRECT);
-    }
     return {
       me,
     };
@@ -26,6 +25,14 @@ export const routeData = () => {
 };
 
 const Register = ({}) => {
+  const { latest } = useRouteData<typeof routeData>();
+  const nav = useNavigate();
+  createEffect(async () => {
+    if (!!latest?.me) {
+      nav("/", { replace: true });
+    }
+  });
+
   return (
     <main>
       <Title>Register</Title>
