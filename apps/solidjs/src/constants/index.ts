@@ -2,6 +2,7 @@ import { createCookieSessionStorage } from "solid-start";
 export const TOKEN_KEY: string = "qid";
 export const storage = createCookieSessionStorage({
   cookie: {
+    name: TOKEN_KEY,
     secure: false,
     sameSite: "lax",
     path: "/",

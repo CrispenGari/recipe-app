@@ -1,103 +1,115 @@
 import { Component, For, createEffect } from "solid-js";
 import styles from "./recipe.module.css";
-import { RouteDataArgs, parseCookie } from "solid-start";
+import { RouteDataArgs } from "solid-start";
 import Banner from "~/components/Banner/Banner";
 import Header from "~/components/Header/Header";
-// import Igredient from "~/components/Igredient/Igredient";
-// import Instruction from "~/components/Instruction/Instruction";
-import { createServerData$ } from "solid-start/server";
-import { TOKEN_KEY } from "~/constants";
+import { createServerData$, redirect } from "solid-start/server";
+import { REDIRECT_CODES, TOKEN_KEY, storage } from "~/constants";
 import { MeType, RecipesType } from "~/types";
-import {
-  A,
-  useNavigate,
-  useParams,
-  useRouteData,
-  useSearchParams,
-} from "@solidjs/router";
-import { useRouteParams } from "solid-start/islands/server-router";
+import { A, useParams, useRouteData } from "@solidjs/router";
 import { decodeId } from "~/utils";
 import Igredient from "~/components/Igredient/Igredient";
 import Instruction from "~/components/Instruction/Instruction";
+import { createStore } from "solid-js/store";
 
 export const routeData = ({ params }: RouteDataArgs) => {
-  return createServerData$(async (_, event) => {
-    const recipeName = await decodeId(params.name);
-    console.log({ recipeName });
-    const cookies = parseCookie(event.request.headers.get("Cookie") ?? "");
-    const token = cookies[TOKEN_KEY] ?? "";
-
-    const fetchMe = async () => {
-      const res = await event.fetch("http://127.0.0.1:3001/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
-      const { me }: { me: MeType | null } = await res.json();
-      return me;
-    };
-    const fetchRecipe = async () => {
-      const res = await event.fetch(
-        `http://127.0.0.1:3001/recipe/recipe/${recipeName}`,
-        {
+  const recipeName = decodeId(params.name);
+  return createServerData$(
+    async ([recipeName], event) => {
+      const session = await storage.getSession(
+        event.request.headers.get("Cookie") ?? ""
+      );
+      const token = session.get(TOKEN_KEY) ?? "";
+      const fetchMe = async () => {
+        const res = await event.fetch("http://127.0.0.1:3001/auth/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
           credentials: "include",
-        }
-      );
-      const { recipe: _ }: { recipe: RecipesType } = await res.json();
-      return _;
-    };
-    const [me, recipe] = await Promise.allSettled([fetchMe, fetchRecipe]);
-    return {
-      me: me.status === "fulfilled" ? await me.value() : null,
-      recipe: recipe.status === "fulfilled" ? await recipe.value() : null,
-    };
-  });
+        });
+        const { me }: { me: MeType | null } = await res.json();
+        return me;
+      };
+      const fetchRecipe = async () => {
+        const res = await event.fetch(
+          `http://127.0.0.1:3001/recipes/recipe/${recipeName}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
+        const { recipe }: { recipe: RecipesType } = await res.json();
+        return recipe;
+      };
+      const [me, recipe] = await Promise.allSettled([fetchMe, fetchRecipe]);
+      const _me = me.status === "fulfilled" ? await me.value() : null;
+
+      const _recipe =
+        recipe.status === "fulfilled" ? await recipe.value() : null;
+
+      if (!!!_me) {
+        return redirect("/auth/login", REDIRECT_CODES.TEMPORARY_REDIRECT);
+      }
+      return {
+        me: _me,
+        recipe: _recipe,
+      };
+    },
+    {
+      key: () => [recipeName],
+    }
+  );
 };
 const Recipe: Component = ({}) => {
   const { latest } = useRouteData<typeof routeData>();
-  const nav = useNavigate();
+  const params = useParams();
+  const [recipe, setRecipe] = createStore<RecipesType | {}>({});
   createEffect(async () => {
-    // if (!!!latest?.me) {
-    //   nav("/auth/login");
-    // }
+    const res = await fetch(`/api/recipe/${params.name}`);
+    const recipe = await res.json();
+    setRecipe(recipe);
   });
   return (
     <div class={styles.recipe}>
       <Header />
       <Banner />
       <div class={styles.recipe__recipe}>
-        {!latest?.recipe ? (
+        {!Object.keys(recipe).length ? (
           <p>No recipe</p>
         ) : (
           <>
-            <h1>{latest.recipe.name}</h1>
+            <h1>{(recipe as RecipesType).name}</h1>
             <img
-              src={latest.recipe.imageURL || "/cover.jpg"}
-              alt={latest.recipe.name}
+              src={(recipe as RecipesType)?.imageURL || "/cover.jpg"}
+              alt={(recipe as RecipesType).name}
             />
 
             <h2>Ingredients</h2>
             <p>
               Here are the the ingredients that you need to make{" "}
-              {latest.recipe.name}.
+              {(recipe as RecipesType).name}.
             </p>
             <For
-              each={latest.recipe.ingredients}
+              each={(recipe as RecipesType).ingredients}
               fallback={<div>Loading...</div>}
             >
               {(item) => <Igredient ingridient={item} />}
             </For>
             <h2>Steps</h2>
-            <p>Steps you need to follow when making {latest.recipe.name}.</p>
+            <p>
+              Steps you need to follow when making{" "}
+              {(recipe as RecipesType).name}.
+            </p>
 
-            <For each={latest.recipe.steps} fallback={<div>Loading...</div>}>
+            <For
+              each={(recipe as RecipesType).steps}
+              fallback={<div>Loading...</div>}
+            >
               {(step) => <Instruction instruction={step} />}
             </For>
-            <A href={latest.recipe.originalURL}>READ MORE</A>
+            <A href={(recipe as RecipesType).originalURL}>READ MORE</A>
           </>
         )}
       </div>

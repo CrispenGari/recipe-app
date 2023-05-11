@@ -8,7 +8,8 @@ authRouter.get("/me", async (ctx) => {
   await ctx.response.headers.set("Content-Type", "application/json");
   try {
     const auth = await ctx.request.headers.get("authorization");
-    const jwt = auth ? auth.split(/\s/)[1] : "";
+    const jwt = auth ? auth.split(" ")[1] : "";
+
     if (!jwt) {
       ctx.response.status = 200;
       return (ctx.response.body = { me: null });
@@ -94,7 +95,6 @@ authRouter.post("/login", async (ctx) => {
         throw new Error("There's no me!");
       }
       const jwt = await signJwt(me);
-
       ctx.response.status = 200;
       return (ctx.response.body = {
         error: null,
